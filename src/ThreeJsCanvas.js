@@ -199,7 +199,7 @@ class ObjectFactory {
 }
 
 
-function getDistance(vec1, vec2) {
+export function getDistance(vec1, vec2) {
     if(vec1.length !== vec2.length) {
         throw new Error("unmatech length of vector");
     }
