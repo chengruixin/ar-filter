@@ -70,7 +70,7 @@ function ThreeJsCanvas({predictions}){
 
                     let translatedPoint = getMiddlePointsWithTranslate(hornLocations[0], hornLocations[1], hornLocations[2], distanceUnits)[0];
 
-                    coneObject.position.set(translatedPoint[0], translatedPoint[1], translatedPoint[2]);
+                    coneObject.position.set(translatedPoint[0], translatedPoint[1] - 100, translatedPoint[2]);
 
                     coneObject.lookAt(hornCenter[0], hornCenter[1], hornCenter[2]);
                     if(rotateX) {
@@ -82,8 +82,8 @@ function ThreeJsCanvas({predictions}){
                     // coneObject.rotateZ(-Math.PI/4);
                 }
                 // console.log(rightCone.geometry.attributes);
-                configureHorns(rightHorn, 10 , rightCone, Math.PI/2 + 0.2, -0.3);
-                configureHorns(leftHorn, 10 , leftCone, Math.PI/2 + 0.2, 0.3);
+                configureHorns(rightHorn, 10 , rightCone, -Math.PI/2 - 0.8, -0.1);
+                configureHorns(leftHorn, 10 , leftCone, -Math.PI/2 - 0.8, 0.1);
                 // let rightHornCenter = getIncenter(rightHorn[0], rightHorn[1], rightHorn[2]);
                 // let leftHornCenter = getIncenter(leftHorn[0], leftHorn[1], rightHorn[2]);
                 // let nostTipCenter = noseTip[0];

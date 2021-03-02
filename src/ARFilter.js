@@ -25,7 +25,8 @@ function ARFilter () {
     // },[predictionsData])
     return (
         <div style={{
-            display : "flex"
+            display : "flex",
+            justifyContent : "center"
         }}>  
             <div>
                 <video id="video" style={{ display : "none", transform : "scaleX(-1)"}}></video>
