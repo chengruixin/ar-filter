@@ -1,13 +1,15 @@
 import {useEffect, useState} from 'react';
 import * as Three from 'three';
 import './index.css';
+import getMiddlePointsWithTranslate , {getIncenter} from './getMiddlePointsWithTranslate';
+
 const VIDEO_WIDTH = 400;
 const VIDEO_HEIGHT = 650;
 
 const faceLocation = {
-    leftHorn : [54, 103],
-    rightHorn : [284, 332],
-    noseTip : [19]
+    leftHorn : [54, 103, 68],
+    rightHorn : [284, 332, 298],
+    noseTip : [220,440,195]
 }
 function ThreeJsCanvas({predictions}){
     // console.log("1");
@@ -19,7 +21,7 @@ function ThreeJsCanvas({predictions}){
     const [leftHorn, setLeftHorn] = useState(null);
     const [rightHorn, setRightHorn] = useState(null);
     const [noseTip, setNoseTip] = useState(null);
-
+    const [confidence, setCon] = useState(null);
     //start 3d canvas and save two cone meshes, for displaying as horns over people's head
     useEffect(()=>{
         let canvas = initiateCanvas("#canvas-3d");
@@ -52,39 +54,64 @@ function ThreeJsCanvas({predictions}){
         setNoseTip(
             faceLocation.noseTip.map( item => predictions[0].scaledMesh[item])
         );
-        
+        // console.log(predictions);
+        setCon(predictions[0].faceInViewConfidence);
     },[predictions]);
 
 
     //update meshes location, rotation and scale
     useEffect(()=>{
-        if(rightHorn && leftHorn && noseTip) {
+        if(rightHorn && leftHorn ) {
             if(rightCone && leftCone){
                 // let rightHornCenter = getPivot(rightHorn[0], rightHorn[1]);
                 // let leftHornCenter = getPivot(leftHorn[0], leftHorn[1]);
-                let rightHornCenter = rightHorn[0];
-                let leftHornCenter = leftHorn[0];
-                let nostTipCenter = noseTip[0];
-                rightCone.position.set(rightHornCenter[0]  , rightHornCenter[1] / 1.5)
-                leftCone.position.set(leftHornCenter[0] , leftHornCenter[1] /1.5)
-                
-                
-                rightCone.lookAt(nostTipCenter[0], nostTipCenter[1], nostTipCenter[2]);
-                leftCone.lookAt(nostTipCenter[0], nostTipCenter[1], nostTipCenter[2]);
-                
-                rightCone.rotateX(-Math.PI/2);
-                leftCone.rotateX(-Math.PI/2);
+                const configureHorns = (hornLocations, distanceUnits, coneObject, rotateX, rotateZ)=>{
+                    let hornCenter = getIncenter(hornLocations[0], hornLocations[1], hornLocations[2]);
 
-                rightCone.rotateZ(Math.PI/12);
-                leftCone.rotateZ(-Math.PI/12);
+                    let translatedPoint = getMiddlePointsWithTranslate(hornLocations[0], hornLocations[1], hornLocations[2], distanceUnits)[0];
+
+                    coneObject.position.set(translatedPoint[0], translatedPoint[1], translatedPoint[2]);
+
+                    coneObject.lookAt(hornCenter[0], hornCenter[1], hornCenter[2]);
+                    if(rotateX) {
+                        coneObject.rotateX(rotateX);
+                    }
+                    if(rotateZ) {
+                        coneObject.rotateZ(rotateZ);
+                    }
+                    // coneObject.rotateZ(-Math.PI/4);
+                }
+                // console.log(rightCone.geometry.attributes);
+                configureHorns(rightHorn, 10 , rightCone, Math.PI/2 + 0.2, -0.3);
+                configureHorns(leftHorn, 10 , leftCone, Math.PI/2 + 0.2, 0.3);
+                // let rightHornCenter = getIncenter(rightHorn[0], rightHorn[1], rightHorn[2]);
+                // let leftHornCenter = getIncenter(leftHorn[0], leftHorn[1], rightHorn[2]);
+                // let nostTipCenter = noseTip[0];
+                // rightCone.position.set(rightHornCenter[0]  , rightHornCenter[1] / 1.5)
+                // leftCone.position.set(leftHornCenter[0] , leftHornCenter[1] /1.5)
+                
+                
+                // rightCone.lookAt(nostTipCenter[0], nostTipCenter[1], nostTipCenter[2]);
+                // leftCone.lookAt(nostTipCenter[0], nostTipCenter[1], nostTipCenter[2]);
+                
+                // rightCone.rotateX(-Math.PI/2);
+                // leftCone.rotateX(-Math.PI/2);
+
+                // rightCone.rotateZ(Math.PI/12);
+                // leftCone.rotateZ(-Math.PI/12);
             }
         }   
-    }, [rightHorn, leftHorn, noseTip])
+    }, [rightHorn, leftHorn])
     
     return (
+        <>
         <div className="test">
                 <canvas id="canvas-3d"></canvas>
         </div>
+        <div>{confidence}</div>
+
+        </>
+        
     )
 }
 
@@ -120,7 +147,7 @@ function initiateThreeJS (canvas, rightEyeIris, leftEyeIris) {
     
     /**Add Point Light */
     {
-        const color = 0x99d5e8;
+        const color = 0xffffff;
         const intensity = 0.8;
         const light = new Three.PointLight(color, intensity);
         light.position.set(VIDEO_WIDTH/2, VIDEO_HEIGHT/2, -200);
@@ -130,16 +157,16 @@ function initiateThreeJS (canvas, rightEyeIris, leftEyeIris) {
     /**Create Objects */
     let rightCone = ObjectFactory.createConeObject(35, 120, 60, 
             new Three.MeshPhongMaterial({
-                color : 0x00ff00
+                color : 0xffff00
             })
         )
         
     let leftCone = ObjectFactory.createConeObject(35, 120, 60, 
         new Three.MeshPhongMaterial({
-            color : 0x00ff00
+            color : 0xffff00
         })
     )
-
+    
     const geometry = new Three.BoxGeometry( 50, 50, 50 );
     const material = new Three.MeshPhongMaterial( {
         color: 0x00ff00,
@@ -151,9 +178,6 @@ function initiateThreeJS (canvas, rightEyeIris, leftEyeIris) {
     scene.add( rightCone );
     scene.add( leftCone );
     
-    
-
-
     /**Render function*/
     function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
