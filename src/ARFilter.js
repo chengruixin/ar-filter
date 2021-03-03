@@ -66,7 +66,7 @@ async function initialization(){
 
 async function setupCamera(queryDom) {
     let video = document.querySelector(queryDom);
-
+    
     const stream = await navigator.mediaDevices.getUserMedia({
         'audio': false,
         'video': {
@@ -80,9 +80,13 @@ async function setupCamera(queryDom) {
       video.srcObject = stream;
     
     return new Promise((resolve) => {
-        video.onloadedmetadata = () => {
+        // video.onloadedmetadata = () => {
+        //     resolve(video);
+        // };
+        video.onloadeddata = () => {
             resolve(video);
-        };
+            
+        }
     });
 }
 

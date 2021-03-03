@@ -1,7 +1,10 @@
 import {useEffect, useState} from 'react';
 import * as Three from 'three';
 import './index.css';
-import getMiddlePointsWithTranslate , {getIncenter} from './getMiddlePointsWithTranslate';
+import getMiddlePointsWithTranslate , {
+    getIncenter,
+    getPerimeter
+} from './getMiddlePointsWithTranslate';
 
 const VIDEO_WIDTH = 400;
 const VIDEO_HEIGHT = 650;
@@ -9,7 +12,8 @@ const VIDEO_HEIGHT = 650;
 const faceLocation = {
     leftHorn : [54, 103, 68],
     rightHorn : [284, 332, 298],
-    noseTip : [220,440,195]
+    noseTip : [220,440,195],
+    middle : [4]
 }
 function ThreeJsCanvas({predictions}){
     // console.log("1");
@@ -22,6 +26,8 @@ function ThreeJsCanvas({predictions}){
     const [rightHorn, setRightHorn] = useState(null);
     const [noseTip, setNoseTip] = useState(null);
     const [confidence, setCon] = useState(null);
+    const [scale, setScale] = useState(null);
+    const [depth, setDepth] = useState(null);
     //start 3d canvas and save two cone meshes, for displaying as horns over people's head
     useEffect(()=>{
         let canvas = initiateCanvas("#canvas-3d");
@@ -56,6 +62,9 @@ function ThreeJsCanvas({predictions}){
         );
         // console.log(predictions);
         setCon(predictions[0].faceInViewConfidence);
+
+        setDepth(predictions[0].scaledMesh[0][2]);
+        
     },[predictions]);
 
 
@@ -73,6 +82,17 @@ function ThreeJsCanvas({predictions}){
                     coneObject.position.set(translatedPoint[0], translatedPoint[1] - 100, translatedPoint[2]);
 
                     coneObject.lookAt(hornCenter[0], hornCenter[1], hornCenter[2]);
+                    
+
+                    {
+                        
+                        let scaleRate = getDistance(hornLocations[0], hornLocations[1]) / 35;
+                        //35, 120, 10
+                        coneObject.geometry.copy(new Three.ConeGeometry(35 * scaleRate, 120 * scaleRate, 10))
+                        
+                    }
+                    // console.log(coneObject.scale);
+                    // setScale(coneObject.scale);
                     if(rotateX) {
                         coneObject.rotateX(rotateX);
                     }
@@ -84,21 +104,7 @@ function ThreeJsCanvas({predictions}){
                 // console.log(rightCone.geometry.attributes);
                 configureHorns(rightHorn, 10 , rightCone, -Math.PI/2 - 0.8, -0.1);
                 configureHorns(leftHorn, 10 , leftCone, -Math.PI/2 - 0.8, 0.1);
-                // let rightHornCenter = getIncenter(rightHorn[0], rightHorn[1], rightHorn[2]);
-                // let leftHornCenter = getIncenter(leftHorn[0], leftHorn[1], rightHorn[2]);
-                // let nostTipCenter = noseTip[0];
-                // rightCone.position.set(rightHornCenter[0]  , rightHornCenter[1] / 1.5)
-                // leftCone.position.set(leftHornCenter[0] , leftHornCenter[1] /1.5)
-                
-                
-                // rightCone.lookAt(nostTipCenter[0], nostTipCenter[1], nostTipCenter[2]);
-                // leftCone.lookAt(nostTipCenter[0], nostTipCenter[1], nostTipCenter[2]);
-                
-                // rightCone.rotateX(-Math.PI/2);
-                // leftCone.rotateX(-Math.PI/2);
-
-                // rightCone.rotateZ(Math.PI/12);
-                // leftCone.rotateZ(-Math.PI/12);
+               
             }
         }   
     }, [rightHorn, leftHorn])
@@ -108,7 +114,16 @@ function ThreeJsCanvas({predictions}){
         <div className="test">
                 <canvas id="canvas-3d"></canvas>
         </div>
-        <div>{confidence}</div>
+        <div
+            style={{
+                position : "absolute",
+                top : "0",
+                left : "0"
+            }}
+        >
+            <li>Confidence : {confidence}</li>
+            <li>Depth : {depth}</li>
+        </div>
 
         </>
         
@@ -155,13 +170,13 @@ function initiateThreeJS (canvas, rightEyeIris, leftEyeIris) {
     }
     
     /**Create Objects */
-    let rightCone = ObjectFactory.createConeObject(35, 120, 60, 
+    let rightCone = ObjectFactory.createConeObject(35, 120, 10, 
             new Three.MeshPhongMaterial({
                 color : 0xffff00
             })
         )
         
-    let leftCone = ObjectFactory.createConeObject(35, 120, 60, 
+    let leftCone = ObjectFactory.createConeObject(35, 120, 10, 
         new Three.MeshPhongMaterial({
             color : 0xffff00
         })
@@ -208,7 +223,7 @@ function initiateThreeJS (canvas, rightEyeIris, leftEyeIris) {
     }
 
     requestAnimationFrame(render);
-
+    
     return [rightCone, leftCone];
 }
 

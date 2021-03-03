@@ -47,6 +47,9 @@ export function getIncenter(a, b, c){
     return [x, y, z];
 }
 
+export function getPerimeter(a, b, c) {
+    return getDistance(a, b) + getDistance(b, c) + getDistance(a, c);
+}
 function getNormalVector(point1, point2, point3){
     let vec_p1p2 = [point2[0] - point1[0], point2[1] - point1[1], point2[2] - point1[2]];
     let vec_p1p3 = [point3[0] - point1[0], point3[1] - point1[1], point3[2] - point1[2]];
