@@ -86,7 +86,7 @@ function ThreeJsCanvas({predictions}){
 
                     {
                         
-                        let scaleRate = getDistance(hornLocations[0], hornLocations[1]) / 35;
+                        let scaleRate = getPerimeter(hornLocations[0], hornLocations[1], hornLocations[2])/2 / 35;
                         //35, 120, 10
                         coneObject.geometry.copy(new Three.ConeGeometry(35 * scaleRate, 120 * scaleRate, 10))
                         
@@ -101,6 +101,7 @@ function ThreeJsCanvas({predictions}){
                     }
                     // coneObject.rotateZ(-Math.PI/4);
                 }
+                
                 // console.log(rightCone.geometry.attributes);
                 configureHorns(rightHorn, 10 , rightCone, -Math.PI/2 - 0.8, -0.1);
                 configureHorns(leftHorn, 10 , leftCone, -Math.PI/2 - 0.8, 0.1);
@@ -171,13 +172,13 @@ function initiateThreeJS (canvas, rightEyeIris, leftEyeIris) {
     
     /**Create Objects */
     let rightCone = ObjectFactory.createConeObject(35, 120, 10, 
-            new Three.MeshPhongMaterial({
+            new Three.MeshToonMaterial({
                 color : 0xffff00
             })
         )
         
     let leftCone = ObjectFactory.createConeObject(35, 120, 10, 
-        new Three.MeshPhongMaterial({
+        new Three.MeshToonMaterial({
             color : 0xffff00
         })
     )
@@ -213,7 +214,7 @@ function initiateThreeJS (canvas, rightEyeIris, leftEyeIris) {
             camera.bottom = canvas.height;
             camera.updateProjectionMatrix();
         }
-
+        camera.updateProjectionMatrix();
         renderer.render(scene, camera);
         // cone.rotation.x += 0.003;
         // cone.rotation.z += 0.003 * 2;

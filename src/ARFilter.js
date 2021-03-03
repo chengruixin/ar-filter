@@ -85,7 +85,6 @@ async function setupCamera(queryDom) {
         // };
         video.onloadeddata = () => {
             resolve(video);
-            
         }
     });
 }
